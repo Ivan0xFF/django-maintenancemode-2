@@ -24,11 +24,14 @@ class MaintenanceModeMiddleware(object):
         to affect multiple sites managed from one instance of Django admin.
         """
         site = Site.objects.get_current()
-
+        
         try:
             maintenance = Maintenance.objects.get(site=site)
         except (Maintenance.DoesNotExist, DatabaseError):
-            for site in Site.objects.all():
+            maintenance = Maintenance.objects.filter(site=site)
+            if maintenance.exists():
+                maintenance = maintenance.first()
+            else:
                 maintenance = Maintenance.objects.create(site=site, is_being_performed=False)
 
         # Allow access if maintenance is not being performed
